@@ -127,10 +127,36 @@ async function main() {
     console.log(`Eklenecek Etiketler: ${labelsToApply.join(', ')}`);
     await addLabels(labelsToApply);
     
+    // 3. OTOMATIK MERGE (YENI)
+    console.log('PR otomatik olarak merge ediliyor...');
+    await mergePR();
+    
   } catch (error) {
     console.error('Hata oluştu:', error);
     process.exit(1);
   }
+}
+
+async function mergePR() {
+  const url = `https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/pulls/${process.env.PR_NUMBER}/merge`;
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${process.env.GH_TOKEN}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      merge_method: 'merge',
+      commit_title: `Otomatik Ödev Kabulü (PR #${process.env.PR_NUMBER})`
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Merge hatası: ${error.message}`);
+  }
+  console.log('PR başarıyla merge edildi.');
 }
 
 main();
