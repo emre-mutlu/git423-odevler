@@ -84,15 +84,16 @@ async function main() {
     const files = await getPRFiles();
     const pr = await getPRDetails();
     
-    // Klasör yapısından hafta ve numara bulma: hafta-1/234401037/...
-    let ogrenciNo = null;
+    // Klasör yapısından hafta ve şube bulma: Sube-1/Hafta-1/Irem-Meryem-Toprak/...
+    let sube = null;
     let hafta = null;
     
     for (const file of files) {
       const parts = file.filename.split('/');
-      if (parts.length >= 2 && parts[0].startsWith('hafta-')) {
-        hafta = parts[0];
-        ogrenciNo = parts[1];
+      if (parts.length >= 3 && parts[0].startsWith('Sube-')) {
+        sube = parts[0];
+        // Klasör Hafta-1 şeklinde geliyor, DEADLINES objesi hafta-1 kullanıyor
+        hafta = parts[1].toLowerCase(); 
         break;
       }
     }
@@ -100,13 +101,11 @@ async function main() {
     const labelsToApply = [];
 
     // 1. ŞUBE KONTROLÜ
-    if (ogrenciNo) {
-      if (sube1OgrenciListesi.includes(ogrenciNo)) {
+    if (sube) {
+      if (sube === 'Sube-1') {
         labelsToApply.push('Şube 1');
-      } else if (sube2OgrenciListesi.includes(ogrenciNo)) {
+      } else if (sube === 'Sube-2') {
         labelsToApply.push('Şube 2');
-      } else {
-        labelsToApply.push('Tanımsız Öğrenci');
       }
     } else {
       labelsToApply.push('Yanlış Klasör Formatı');
